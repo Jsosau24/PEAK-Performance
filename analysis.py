@@ -253,6 +253,24 @@ class An():
         #drops all nan values
         self.fData.dropna()
 
+        '''#removes noice from the data
+        for i in range(len(self.variables)):
+
+            #get the .5 and 95 quartile
+            min = self.fData.loc[:,self.variables[0]].quantile(0.8)
+            max = self.fData.loc[:,self.variables[0]].quantile(0.92)
+            print(min)
+            print('------------')
+
+            for x in self.fData.index:
+
+                if ((self.fData.loc[x, self.variables[0]]) < min):
+                    print(self.fData.loc[x, self.variables[0]])
+                    self.fData.drop(x, inplace = True)
+
+                elif self.fData.loc[x, self.variables[i]] < max:
+                    self.fData.drop(x, inplace = True)'''
+
         return self.fData
 
     def filDate (self, beggining, end, data):
