@@ -217,6 +217,10 @@ class An():
         self.mean = self.fData.mean()
         self.std = self.fData.std()
 
+        #sets a column for weakly and bi-weekly averages
+        self.fData['Date-2week'] = self.fData['Date'] - pd.to_timedelta(14, unit='d')
+        self.fData['Date-week'] = self.fData['Date'] - pd.to_timedelta(7, unit='d')
+
         return
 
     #helper methods for initiallize methods
@@ -334,14 +338,110 @@ class An():
         fig.tight_layout()
         plt.show()
         
-    def varGraphsMDC (self, ds, title):
-        '''Creates the graphs of every variable
+    def varGraphsMDCseason (self, ds, title):
+        '''Creates the graphs of every variable using the MDC of the second week as a baseline
         Parameters:
         -----------
         ds: pandas dataset
+        title: string
         '''
 
+        #convert date column to datetime and subtract one week
+        ds['Date-2week'] = ds['Date'] - pd.to_timedelta(14, unit='d')
+
+        #calculate sum of values, grouped by week
+        week2 = ds.groupby([pd.Grouper(key='Date-2week', freq='2W')])
+
+        #convert date column to datetime and subtract one week
+        ds['Date-week'] = ds['Date'] - pd.to_timedelta(7, unit='d')
+
+        #calculate sum of values, grouped by week
+        week = ds.groupby([pd.Grouper(key='Date-week', freq='W')])
+
         dates = ds.loc[:,'Date']
+        #subplots
+        fig, axs = plt.subplots(len(self.variables), 1, figsize=(20, 40))
+        plt.subplots_adjust(hspace=0.8)
+
+        for i in range(len(self.variables)):
+
+            #scatterplot
+            axs[i].set_title(self.variables[i])
+            axs[i].scatter(dates,ds.loc[:,self.variables[i]], label="Data Points", alpha=.3)
+
+            #linear regression
+            s = ds.set_index('Date')[self.variables[i]]
+
+            y = s
+            x = (s.index - pd.Timestamp(0)).days.values
+                    
+            #calculate equation for trendline
+            z = np.polyfit(x, y, 10)
+            p = np.poly1d(z)
+
+            #add trendline to plot
+            axs[i].plot(dates, p(x), color="purple", linewidth=1, linestyle="--", label="Trend")
+
+            #gets the MDC
+            count=0
+
+            for wk, group in week2:
+
+                if count == 0:
+                    count = count + 1
+
+                if count == 1:
+
+                    count = count + 1
+            
+                    #get the average of the variable
+                    avgWK = group.loc[:,self.variables[i]].mean()
+                    mdcWK = self.volley.getMdcInd(group.loc[:,self.variables[i]])
+
+                    #define the bottom bounds
+                    botMDC = avgWK - mdcWK
+                    topMDC = avgWK + mdcWK
+
+                    #highlight area
+                    axs[i].fill_between(dates, topMDC, botMDC, color='C0', alpha=0.3, label='MDC')
+                    axs[i].fill_between(dates, p(x), botMDC, where=(p(x) < botMDC), color='C1', alpha=0.3, label='Under MDC')
+                    axs[i].fill_between(dates, topMDC, p(x), where=(p(x) > topMDC), color='C2', alpha=0.3, label='Over MDC')
+
+                    #intersection points
+                    trendY= p(x)
+                    #top MDC
+                    idx = np.argwhere(np.diff(np.sign(trendY - topMDC))).flatten()
+                    axs[i].plot(x[idx], trendY[idx], 'ro')
+                    #Bottom MDC
+                    idx = np.argwhere(np.diff(np.sign(trendY - botMDC))).flatten()
+                    axs[i].plot(x[idx], trendY[idx], 'ro')
+
+                elif count > 0:
+                    break
+            
+            for wk, group in week:
+                axs[i].scatter(wk,group.loc[:,self.variables[i]].mean(),color = 'green')
+
+        #graph configuration
+        plt.suptitle(title, fontsize=20, y=1)
+        plt.legend(loc ="lower right")
+        plt.gcf().autofmt_xdate()
+        fig.tight_layout()
+        plt.show()
+
+    def varGraphsMDCyear (self, ds, title="Year Graph"):
+        '''Creates the graphs of every variable using the MDC of the second week
+        Parameters:
+        -----------
+        ds: pandas dataset
+        title: string
+        '''
+
+        week2 = ds.groupby([pd.Grouper(key='Date-2week', freq='2W')])
+        week = ds.groupby([pd.Grouper(key='Date-week', freq='W')])
+
+        dates = ds.loc[:,'Date']
+
         #subplots
         fig, axs = plt.subplots(len(self.variables), 1, figsize=(20, 40))
         plt.subplots_adjust(hspace=0.8)
@@ -358,7 +458,7 @@ class An():
 
             #scatterplot
             axs[i].set_title(self.variables[i])
-            axs[i].scatter(dates,ds.loc[:,self.variables[i]])
+            axs[i].scatter(dates,ds.loc[:,self.variables[i]], label="Data Points")
 
             #linear regression
             s = ds.set_index('Date')[self.variables[i]]
@@ -367,24 +467,58 @@ class An():
             x = (s.index - pd.Timestamp(0)).days.values
                     
             #calculate equation for trendline
-            z = np.polyfit(x, y, 1)
+            z = np.polyfit(x, y, 10)
             p = np.poly1d(z)
 
             #add trendline to plot
-            axs[i].plot(dates, p(x), color="purple", linewidth=1, linestyle="--")
+            axs[i].plot(dates, p(x), color="purple", linewidth=1, linestyle="--", label="Trend")
 
             #highlight area
-            axs[i].fill_between(dates, topMDC, botMDC, color='C0', alpha=0.3)
-            axs[i].fill_between(dates, p(x), botMDC, where=(p(x) < botMDC), color='C1', alpha=0.3)
-            axs[i].fill_between(dates, topMDC, p(x), where=(p(x) > topMDC), color='C2', alpha=0.3)
+            axs[i].fill_between(dates, topMDC, botMDC, color='C0', alpha=0.3, label='MDC')
+            axs[i].fill_between(dates, p(x), botMDC, where=(p(x) < botMDC), color='C1', alpha=0.3, label='Under MDC')
+            axs[i].fill_between(dates, topMDC, p(x), where=(p(x) > topMDC), color='C2', alpha=0.3, label='Over MDC')
+
+            #intersection points
+            trendY= p(x)
+
+            #top MDC
+            idx = np.argwhere(np.diff(np.sign(trendY - topMDC))).flatten()
+            axs[i].plot(x[idx], trendY[idx], 'ro')
+
+            #Bottom MDC
+            idx = np.argwhere(np.diff(np.sign(trendY - botMDC))).flatten()
+            axs[i].plot(x[idx], trendY[idx], 'ro')
+
             
-                
+            #MDC 2 week
+            for wk, group in week2:
+            
+                #get the average of the variable
+                avgWK = group.loc[:,self.variables[i]].mean()
+                mdcWK = self.getMdcInd(group.loc[:,self.variables[i]])
+
+                #define the bottom bounds
+                botMDCwk = avgWK - mdcWK
+
+                axs[i].add_patch(Rectangle((wk, botMDCwk), pd.to_timedelta(14, unit='d'), (2*mdcWK),edgecolor='red',facecolor='none'))
+            
+            for wk, group in week:
+                axs[i].scatter(wk,group.loc[:,self.variables[i]].mean(),color = 'hotpink')
+
         #graph configuration
-        plt.suptitle(title, fontsize=20, y=1)
-        plt.legend(["Data", "Trend", "MDC", "Under MDC", "Over MDC"], loc ="lower right")
+        plt.suptitle("title", fontsize=20, y=1)
+        plt.legend(loc ="lower right")
         plt.gcf().autofmt_xdate()
         fig.tight_layout()
         plt.show()
+            
+    def varGraphYear(self):
+        '''Creates the graphs of every variable for the whole year
+        Parameters:
+        -----------
+        '''
+        
+        self.varGraphsMDCyear(self.fData)
         
     def varGraphsInd (self, name):
         '''Creates the graphs of every variable for that person
@@ -518,24 +652,76 @@ class An():
 
             for row in range(len(self.variables)):
 
+                #convert date column to datetime and subtract one week
+                ds['Date-2week'] = ds['Date'] - pd.to_timedelta(14, unit='d')
+
+                #calculate sum of values, grouped by week
+                week2 = ds.groupby([pd.Grouper(key='Date-2week', freq='2W')])
+
+                #convert date column to datetime and subtract one week
+                ds['Date-week'] = ds['Date'] - pd.to_timedelta(7, unit='d')
+
+                #calculate sum of values, grouped by week
+                week = ds.groupby([pd.Grouper(key='Date-week', freq='W')])
+
                 dates = ds.loc[:,'Date'] #gets the dates for each data set (X variable)
-                
+
                 #scatterplot
-                axs[row,col].scatter(dates,ds.loc[:,self.variables[row]])
+                axs[row,col].set_title(self.variables[row])
+                axs[row,col].scatter(dates,ds.loc[:,self.variables[row]], label="Data Points", alpha=.3)
 
                 #linear regression
                 s = ds.set_index('Date')[self.variables[row]]
 
                 y = s
                 x = (s.index - pd.Timestamp(0)).days.values
-                
+                            
                 #calculate equation for trendline
-                z = np.polyfit(x, y, 1)
+                z = np.polyfit(x, y, 10)
                 p = np.poly1d(z)
-                axs[row,col].set_title('Regression Coefficient: ' + "{:e}".format(z[0])) 
 
                 #add trendline to plot
-                axs[row,col].plot(dates, p(x), color="purple", linewidth=3, linestyle="--")
+                axs[row,col].plot(dates, p(x), color="purple", linewidth=1, linestyle="--", label="Trend")
+
+                #gets the MDC
+                count=0
+
+                for wk, group in week2:
+
+                    if count == 0:
+                        count = count + 1
+
+                    if count == 1:
+
+                        count = count + 1
+                    
+                        #get the average of the variable
+                        avgWK = group.loc[:,self.variables[row]].mean()
+                        mdcWK = self.getMdcInd(group.loc[:,self.variables[row]])
+
+                        #define the bottom bounds
+                        botMDC = avgWK - mdcWK
+                        topMDC = avgWK + mdcWK
+
+                        #highlight area
+                        axs[row,col].fill_between(dates, topMDC, botMDC, color='C0', alpha=0.3, label='MDC')
+                        axs[row,col].fill_between(dates, p(x), botMDC, where=(p(x) < botMDC), color='C1', alpha=0.3, label='Under MDC')
+                        axs[row,col].fill_between(dates, topMDC, p(x), where=(p(x) > topMDC), color='C2', alpha=0.3, label='Over MDC')
+
+                        #intersection points
+                        trendY= p(x)
+                        #top MDC
+                        idx = np.argwhere(np.diff(np.sign(trendY - topMDC))).flatten()
+                        axs[row,col].plot(x[idx], trendY[idx], 'ro')
+                        #Bottom MDC
+                        idx = np.argwhere(np.diff(np.sign(trendY - botMDC))).flatten()
+                        axs[row,col].plot(x[idx], trendY[idx], 'ro')
+
+                    elif count > 0:
+                        break
+                    
+                for wk, group in week:
+                    axs[row,col].scatter(wk,group.loc[:,self.variables[row]].mean(),color = 'green')
         
         #graph configuration
         plt.suptitle(title, fontsize=20, y=1)
