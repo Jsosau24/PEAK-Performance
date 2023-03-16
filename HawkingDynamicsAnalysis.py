@@ -13,7 +13,7 @@ from matplotlib import dates as mpl_dates
 from matplotlib.patches import Rectangle
 
 #Analysis class
-class An():
+class Analysis():
 
     #init method
     def __init__(self, path=None, year=2020, fall=None, winter=None, spring=None,summer=None,variables = ['System Weight', 'Jump Height', 'Braking RFD','Time To Takeoff','mRSI', 'Peak Relative Propulsive Power']):
@@ -45,79 +45,76 @@ class An():
         #variables: array of strings
         #   This variable contains the names of the variables we are going to use
         self.variables= variables
-        self.allVariables = ['Date', 'Name']
-        self.allVariables.extend(self.variables)
+        self.all_variables = ['Date', 'Name']
+        self.all_variables.extend(self.variables)
 
-        # fData: pandas dataset
+        # filter_data: pandas dataset
         #   This variable contains the clean version of the data without any extra vsriables or observations
-        self.fData = None 
+        self.filter_data = None 
 
-        # grpAthl: pands group object
+        # filter_data_athletes: pands group object
         #   datasets grouped by athletes
-        self.fDataAthl = None
+        self.filter_data_athletes = None
 
-        # grpFall: pands group object
+        # fall_group: pands group object
         #   datasets grouped by athletes in the fall
-        self.grpFall = None
+        self.fall_group = None
 
-        # grpWinter: pands group object
+        # winter_group: pands group object
         #   datasets grouped by athletes in the Winter
-        self.grpWinter = None
+        self.winter_group = None
 
-        # grpWinter: pands group object
+        # spring_group: pands group object
         #   datasets grouped by athletes in the Spring
-        self.grpSpring = None       
+        self.spring_group = None       
 
-        # fall: string
+        # fall_date: string
         #   contains day and month for the beggining fall season month/day format
-        self.fall = fall
+        self.fall_date = fall
 
-        # winter: string
+        # winter_date: string
         #   contains day and month for the beggining winter season month/day format
-        self.winter = winter
+        self.winter_date = winter
 
-        # spring: string
+        # spring_date: string
         #   contains day and month for the beggining spring season month/day format
-        self.spring = spring
+        self.spring_date = spring
 
         # summer: string
         #   contains day and month for the beggining summer season month/day format
-        self.summer = summer
+        self.summer_date = summer
 
-        # fallData
+        # fall_season_data
         #   This variable contains the observations of the filreted dataset for the Fall season
-        self.fallData = None
+        self.fall_season_data = None
 
-        # wintData
+        # winter_season_data
         #   This variable contains the observations of the filreted dataset for the Winter season
-        self.wintData = None
+        self.winter_season_data = None
 
-        # spriData
+        # spring_season_data
         #   This variable contains the observations of the filreted dataset for the Spring season
-        self.spriData = None
+        self.spring_season_data = None
 
-        # numObs: int. 
+        # number_of_observations: int. 
         #   This variable contains the number of observaions
-        self.numObs = None
+        self.number_of_observations = None
 
-        # numVar: int. 
+        # number_of_variables: int. 
         #   This variable contains the number of variables
-        self.numVar = None
+        self.number_of_variables = None
 
-        # des: arr
+        # decriptive_statistics: arr
         #   This variable conatians an array with descriptive statistics for quantitative variables
-        self.des = None
+        self.decriptive_statistics = None
 
         # mean: arr
         #   This variable contains an array with the mean for the number of quantitative variables
         self.mean = None
 
-        # std: arr
+        # standard_deviation: arr
         #   This variable contains an array with the Standard Deviation for the number of quantitative variables
-        self.std = None
-
-        if path is not None:
-            pass
+        self.standard_deviation = None
 
     #set methods
     def set_path(self, path):
@@ -131,7 +128,7 @@ class An():
 
         self.path = path
 
-    def set_fall(self, fall):
+    def set_fall_date(self, fall):
         """Replaces fall instance variable with `fall`.
         NOTE: you have to initialize the class to update
 
@@ -140,9 +137,9 @@ class An():
         fall: string
         """
 
-        self.fall = fall
+        self.fall_date = fall
 
-    def set_winter(self, winter):
+    def set_winter_date(self, winter):
         """Replaces winter instance variable with `winter`.
         NOTE: you have to initialize the class to update
 
@@ -151,9 +148,9 @@ class An():
         winter: string
         """
 
-        self.winter = winter
+        self.winter_date = winter
 
-    def set_spring(self, spring):
+    def set_spring_date(self, spring):
         """Replaces spring instance variable with `spring`.
         NOTE: you have to initialize the class to update
 
@@ -162,9 +159,9 @@ class An():
         spring: string
         """
 
-        self.spring = spring
+        self.spring_date = spring
 
-    def set_summer(self, summer):
+    def set_summer_date(self, summer):
         """Replaces summer instance variable with `summer`.
         NOTE: you have to initialize the class to update
 
@@ -173,58 +170,58 @@ class An():
         summer: string
         """
 
-        self.summer = summer
+        self.summer_date = summer
 
     #initialize method
-    def initialize (self):
+    def initialize(self):
         """Initialize the class by cleaning the data and start updating the variables for the class
         """
 
         #loads the data set into a pandas dataframe
-        self.data = pd.read_csv('data/WS.csv')
+        self.data = pd.read_csv(self.path)
 
         # Convert the Date to datetime64
         self.data['Date'] = pd.to_datetime(self.data['Date']) #format='%m/%d/%Y'
 
         #divides the datasets into the different seasons during the school year
-        self.fall= pd.to_datetime(self.fall+'/'+str(self.year))
-        self.winter= pd.to_datetime(self.winter+'/'+str(self.year))
-        self.spring= pd.to_datetime(self.spring+'/'+str(self.year+1))
-        self.summer= pd.to_datetime(self.summer+'/'+str(self.year+1))
+        self.fall_date= pd.to_datetime(self.fall_date+'/'+str(self.year))
+        self.winter_date= pd.to_datetime(self.winter_date+'/'+str(self.year))
+        self.spring_date= pd.to_datetime(self.spring_date+'/'+str(self.year+1))
+        self.summer_date= pd.to_datetime(self.summer_date+'/'+str(self.year+1))
 
         #calls the method to clean the data set
-        self.cleanDS()
+        self.clean_data()
 
         #sorts dataset by date
-        self.fData=self.fData.sort_values(by='Date',ascending=True)
+        self.filter_data=self.filter_data.sort_values(by='Date',ascending=True)
 
         #divides the dataset into seasons
-        self.fallData = self.filDate(self.fall, self.winter, self.fData)
-        self.wintData = self.filDate(self.winter, self.spring, self.fData)
-        self.spriData = self.filDate(self.spring, self.summer, self.fData)
+        self.fall_season_data = self.filter_df_by_date(self.fall_date, self.winter_date, self.filter_data)
+        self.winter_season_data = self.filter_df_by_date(self.winter_date, self.spring_date, self.filter_data)
+        self.spring_season_data = self.filter_df_by_date(self.spring_date, self.summer_date, self.filter_data)
 
         #groups the data for individual atheltes trough the acedemic year
-        self.fDataAthl = self.grpAthl(self.fData)
+        self.filter_data_athletes = self.group_df_by_athlete(self.filter_data)
 
         #groups the data for individual athletes in each season
-        self.grpFall= self.grpAthl(self.fallData)
-        self.grpWinter= self.grpAthl(self.wintData)
-        self.grpSpring= self.grpAthl(self.spriData)
+        self.fall_group= self.group_df_by_athlete(self.fall_season_data)
+        self.winter_group= self.group_df_by_athlete(self.winter_season_data)
+        self.spring_group= self.group_df_by_athlete(self.spring_season_data)
 
         #sets the reminder of the variables
-        self.numObs,self.numVar = self.fData.shape
-        self.des = self.fData.describe()
-        self.mean = self.fData.mean()
-        self.std = self.fData.std()
+        self.number_of_observations,self.number_of_variables = self.filter_data.shape
+        self.decriptive_statistics = self.filter_data.describe()
+        self.mean = self.filter_data.mean()
+        self.standard_deviation = self.filter_data.std()
 
         #sets a column for weakly and bi-weekly averages
-        self.fData['Date-2week'] = self.fData['Date'] - pd.to_timedelta(14, unit='d')
-        self.fData['Date-week'] = self.fData['Date'] - pd.to_timedelta(7, unit='d')
+        self.filter_data['Date-2week'] = self.filter_data['Date'] - pd.to_timedelta(14, unit='d')
+        self.filter_data['Date-week'] = self.filter_data['Date'] - pd.to_timedelta(7, unit='d')
 
         return
 
     #helper methods for initiallize methods
-    def grpAthl (self, ds):
+    def group_df_by_athlete (self, ds):
         '''Creates an array with individual datasets grouped by athlete
         Parameters:
         -----------
@@ -237,9 +234,9 @@ class An():
         
         return ds.groupby('Name')
         
-    def cleanDS (self):
+    def clean_data (self):
         '''Cleans the dataset so that we only have the data from the year we need as well as the observations
-            we need. This is saved to self.fData
+            we need. This is saved to self.filter_data
         Parameters:
         -----------
         
@@ -249,33 +246,33 @@ class An():
         '''
 
         #filters the columns to the ones we are going to use
-        self.fData = self.data[self.allVariables]
+        self.filter_data = self.data[self.all_variables]
 
         #keeps only the data from that academic year
-        self.fData = self.filDate(self.fall, self.summer, self.fData)
+        self.filter_data = self.filter_df_by_date(self.fall_date, self.summer_date, self.filter_data)
 
         #drops all nan values
-        self.fData.dropna()
+        self.filter_data.dropna()
 
         #removes noice from the data
         for i in range(len(self.variables)):
 
             #get the .5 and 95 quartile
-            min = self.fData.loc[:,self.variables[i]].quantile(0.01)
-            max = self.fData.loc[:,self.variables[i]].quantile(0.99)
+            min = self.filter_data.loc[:,self.variables[i]].quantile(0.01)
+            max = self.filter_data.loc[:,self.variables[i]].quantile(0.99)
 
-            for x in self.fData.index:
+            for x in self.filter_data.index:
                 
                 #sets the value to the defined quartile if the vallue exceeds that quartile
-                if self.fData.loc[x, self.variables[i]] > max:
-                    self.fData.loc[x, self.variables[i]] = max
+                if self.filter_data.loc[x, self.variables[i]] > max:
+                    self.filter_data.loc[x, self.variables[i]] = max
                 
-                elif self.fData.loc[x, self.variables[i]] < min:
-                    self.fData.loc[x, self.variables[i]] = min
+                elif self.filter_data.loc[x, self.variables[i]] < min:
+                    self.filter_data.loc[x, self.variables[i]] = min
 
-        return self.fData
+        return self.filter_data
 
-    def filDate (self, beggining, end, data):
+    def filter_df_by_date (self, beggining, end, data):
         '''Cleans the dataset so that we only have the data from the year we need as well as the
         Parameters:
         -----------
@@ -290,55 +287,8 @@ class An():
 
         return data.loc[(data['Date'] >= beggining) & (data['Date'] < end)]
 
-    def initTest(self):
-        """test if the we have all the variables we need to start the object
-
-        Returns:
-        bool
-        """
-        pass
-
     #graphs methods
-    #year round
-    def varGraphs (self, ds, title):
-        '''Creates the graphs of every variable
-        Parameters:
-        -----------
-        ds: pandas dataset
-        '''
-
-        dates = ds.loc[:,'Date']
-        #subplots
-        fig, axs = plt.subplots(len(self.variables), 1, figsize=(20, 20))
-        plt.subplots_adjust(hspace=0.8)
-
-        for i in range(len(self.variables)):
-
-            #scatterplot
-            axs[i].set_title(self.variables[i])
-            axs[i].scatter(dates,ds.loc[:,self.variables[i]])
-
-            #linear regression
-            s = ds.set_index('Date')[self.variables[i]]
-
-            y = s
-            x = (s.index - pd.Timestamp(0)).days.values
-            
-            #calculate equation for trendline
-            z = np.polyfit(x, y, 1)
-            p = np.poly1d(z)
-
-            #add trendline to plot
-            axs[i].plot(dates, p(x), color="purple", linewidth=3, linestyle="--")
-           
-        #graph configuration
-        plt.suptitle(title, fontsize=20, y=1)
-        plt.legend(["Data", "Trend"], loc ="lower right")
-        plt.gcf().autofmt_xdate()
-        fig.tight_layout()
-        plt.show()
-        
-    def varGraphsMDCseason (self, ds, title):
+    def mdc_graphs_for_season_data(self, ds, title):
         '''Creates the graphs of every variable using the MDC of the second week as a baseline
         Parameters:
         -----------
@@ -396,7 +346,7 @@ class An():
             
                     #get the average of the variable
                     avgWK = group.loc[:,self.variables[i]].mean()
-                    mdcWK = self.volley.getMdcInd(group.loc[:,self.variables[i]])
+                    mdcWK = self.get_minimal_detectable_change_of_a_dataframe(group.loc[:,self.variables[i]])
 
                     #define the bottom bounds
                     botMDC = avgWK - mdcWK
@@ -429,8 +379,9 @@ class An():
         fig.tight_layout()
         plt.show()
 
-    def varGraphsMDCyear (self, ds, title="Year Graph"):
-        '''Creates the graphs of every variable using the MDC of the second week
+    #year round graphs
+    def mdc_graphs_for_year_data (self, ds, title):
+        '''Creates the graphs of every variable using the MDC of the whole year
         Parameters:
         -----------
         ds: pandas dataset
@@ -450,7 +401,7 @@ class An():
 
             #get the average of the variable
             avg = ds.loc[:,self.variables[i]].mean()
-            mdc = self.getMdcInd(ds.loc[:,self.variables[i]])
+            mdc = self.get_minimal_detectable_change_of_a_dataframe(ds.loc[:,self.variables[i]])
 
             #define the top and bottom bounds
             topMDC = avg + mdc
@@ -495,7 +446,7 @@ class An():
             
                 #get the average of the variable
                 avgWK = group.loc[:,self.variables[i]].mean()
-                mdcWK = self.getMdcInd(group.loc[:,self.variables[i]])
+                mdcWK = self.get_minimal_detectable_change_of_a_dataframe(group.loc[:,self.variables[i]])
 
                 #define the bottom bounds
                 botMDCwk = avgWK - mdcWK
@@ -506,122 +457,114 @@ class An():
                 axs[i].scatter(wk,group.loc[:,self.variables[i]].mean(),color = 'hotpink')
 
         #graph configuration
-        plt.suptitle("title", fontsize=20, y=1)
+        plt.suptitle(title, fontsize=20, y=1)
         plt.legend(loc ="lower right")
         plt.gcf().autofmt_xdate()
         fig.tight_layout()
         plt.show()
             
-    def varGraphYear(self):
-        '''Creates the graphs of every variable for the whole year
-        Parameters:
-        -----------
-        '''
-        
-        self.varGraphsMDCyear(self.fData)
-        
-    def varGraphsInd (self, name):
+    def year_graphs_for_one_athlete (self, name):
         '''Creates the graphs of every variable for that person
         Parameters:
         -----------
         ds: pandas dataset
         '''
         
-        ds = self.fDataAthl.get_group(name)
-        self.varGraphs(ds,name)
+        ds = self.filter_data_athletes.get_group(name)
+        self.mdc_graphs_for_year_data(ds, name)
 
-    def allIndGraphs (self):
+    def year_graphs_for_all_athletes (self):
         '''Creates the graphs of every variable for that all individuals
         Parameters:
         -----------
         '''
-        for name,group in self.fDataAthl:
-            self.varGraphsInd(name)
+        for name,group in self.filter_data_athletes:
+            self.year_graphs_for_one_athlete(name)
 
-    #seasonal 
+    #seasonal graphs
     #fall
-    def fallGraphs (self):
+    def fall_season_graphs (self):
         '''Creates the graphs of every variables
         Parameters:
         -----------
         '''
 
-        self.varGraphs(self.fallData, 'Fall Team Data')
+        self.mdc_graphs_for_season_data(self.fall_season_data, 'Fall Season Graphs')
 
-    def fallGraphsInd (self, name):
+    def fall_graphs_for_one_athlete (self, name):
         '''Creates the graphs of every variables for an athlete
         Parameters:
         -----------
         name: string
         '''
-        ds = self.grpFall.get_group(name)
-        self.varGraphs(ds,name)
+        ds = self.fall_group.get_group(name)
+        self.mdc_graphs_for_season_data(ds,name)
 
-    def fallGraphsIndAll (self):
+    def fall_graphs_for_all_athletes (self):
         '''Creates the graphs of every variable for that all individuals in the fall season
         Parameters:
         -----------
         '''
 
-        for name,group in self.grpFall:
-            self.varGraphsInd(name)
+        for name,group in self.fall_group:
+            self.fall_graphs_for_one_athlete(name)
 
     #winter
-    def winterGraphs (self):
+    def winter_season_graphs (self):
         '''Creates the graphs of every variables
         Parameters:
         -----------
         '''
 
-        self.varGraphs(self.wintData, 'Winter Team Data')
+        self.mdc_graphs_for_season_data(self.winter_season_data, 'Winter Team Data')
 
-    def winterGraphsInd (self, name):
+    def winter_graphs_for_one_athlete (self, name):
         '''Creates the graphs of every variables for an athlete
         Parameters:
         -----------
         name: string
         '''
-        ds = self.grpWinter.get_group(name)
-        self.varGraphs(ds,name)
+        ds = self.winter_group.get_group(name)
+        self.mdc_graphs_for_season_data(ds,name)
 
-    def winterGraphsIndAll (self):
+    def winter_graphs_for_all_athletes (self):
         '''Creates the graphs of every variable for that all individuals in the fall season
         Parameters:
         -----------
         '''
 
-        for name,group in self.grpWinter:
-            self.varGraphsInd(name)
+        for name,group in self.winter_group:
+            self.winter_graphs_for_one_athlete(name)
 
     #spring
-    def springGraphs (self):
+    def spring_season_graphs (self):
         '''Creates the graphs of every variables
         Parameters:
         -----------
         '''
 
-        self.varGraphs(self.spriData, 'Spring Team Data')
+        self.mdc_graphs_for_season_data(self.spring_season_data, 'Spring Team Data')
 
-    def springGraphsInd (self, name):
+    def spring_graphs_for_one_athlete (self, name):
         '''Creates the graphs of every variables for an athlete
         Parameters:
         -----------
         name: string
         '''
-        ds = self.grpSpring.get_group(name)
-        self.varGraphs(ds,name)
+        ds = self.spring_group.get_group(name)
+        self.mdc_graphs_for_season_data(ds,name)
 
-    def springGraphsIndAll (self):
+    def spring_graphs_for_all_athletes (self):
         '''Creates the graphs of every variable for that all individuals in the spring season
         Parameters:
         -----------
         '''
 
-        for name,group in self.grpSpring:
-            self.varGraphsInd(name)
+        for name,group in self.spring_group:
+            self.spring_graphs_for_one_athlete(name)
 
     #team divided by season
-    def teamGraphsBySeason(self, title='Data in Different Seasons'):
+    def team_graphs_by_season(self, title='Data in Different Seasons'):
         '''Creates the graphs of every variable divide by every season
         Parameters:
         -----------
@@ -642,13 +585,13 @@ class An():
         for col in range(3): # 3 seasons
 
             if col == 0:
-                ds = self.fallData
+                ds = self.fall_season_data
 
             if col == 1:
-                ds = self.wintData
+                ds = self.winter_season_data
 
             if col == 2:
-                ds = self.spriData
+                ds = self.spring_season_data
 
             for row in range(len(self.variables)):
 
@@ -732,7 +675,7 @@ class An():
 
     #get Statistics
     #mean
-    def getMean(self, variable):
+    def get_mean(self, variable):
         '''Returns the average for the stated variable for the year data
         Parameters
         --------------
@@ -740,9 +683,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fData.loc[:,variable].mean()
+        return self.filter_data.loc[:,variable].mean()
 
-    def getMeanFall(self, variable):
+    def get_mean_fall(self, variable):
         '''Returns the average for the stated variable for the fall data
         Parameters
         --------------
@@ -750,9 +693,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fallData.loc[:,variable].mean()
+        return self.fall_season_data.loc[:,variable].mean()
 
-    def getMeanWinter(self, variable):
+    def get_mean_winter(self, variable):
         '''Returns the average for the stated variable for the winter data
         Parameters
         --------------
@@ -760,9 +703,9 @@ class An():
             name of the variable 
         '''
 
-        return self.wintData.loc[:,variable].mean()
+        return self.winter_season_data.loc[:,variable].mean()
 
-    def getMeanSpring(self, variable):
+    def get_mean_spring(self, variable):
         '''Returns the average for the stated variable for the spring data
         Parameters
         --------------
@@ -770,10 +713,10 @@ class An():
             name of the variable 
         '''
 
-        return self.spriData.loc[:,variable].mean()
+        return self.spring_season_data.loc[:,variable].mean()
 
     #count
-    def getCount(self, variable):
+    def get_count(self, variable):
         '''Returns the count for the stated variable for the year data
         Parameters
         --------------
@@ -781,9 +724,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fData.loc[:,variable].count()
+        return self.filter_data.loc[:,variable].count()
 
-    def getCountFall(self, variable):
+    def get_count_fall(self, variable):
         '''Returns the count for the stated variable for the fall data
         Parameters
         --------------
@@ -791,9 +734,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fallData.loc[:,variable].count()
+        return self.fall_season_data.loc[:,variable].count()
 
-    def getCountWinter(self, variable):
+    def get_count_winter(self, variable):
         '''Returns the count for the stated variable for the winter data
         Parameters
         --------------
@@ -801,9 +744,9 @@ class An():
             name of the variable 
         '''
 
-        return self.wintData.loc[:,variable].count()
+        return self.winter_season_data.loc[:,variable].count()
 
-    def getCountSpring(self, variable):
+    def get_count_spring(self, variable):
         '''Returns the count for the stated variable for the spring data
         Parameters
         --------------
@@ -811,10 +754,10 @@ class An():
             name of the variable 
         '''
 
-        return self.spriData.loc[:,variable].count()
+        return self.spring_season_data.loc[:,variable].count()
 
     #standard deviation
-    def getStd(self, variable):
+    def get_std(self, variable):
         '''Returns the standard deviation for the stated variable for the year data
         Parameters
         --------------
@@ -822,9 +765,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fData.loc[:,variable].std()
+        return self.filter_data.loc[:,variable].std()
 
-    def getStdFall(self, variable):
+    def get_std_fall(self, variable):
         '''Returns the standard deviation for the stated variable for the fall data
         Parameters
         --------------
@@ -832,9 +775,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fallData.loc[:,variable].std()
-
-    def getStdWinter(self, variable):
+        return self.fall_season_data.loc[:,variable].std()
+    
+    def get_std_winter(self, variable):
         '''Returns the standard deviation for the stated variable for the winter data
         Parameters
         --------------
@@ -842,9 +785,9 @@ class An():
             name of the variable 
         '''
 
-        return self.wintData.loc[:,variable].std()
+        return self.winter_season_data.loc[:,variable].std()
 
-    def getStdSpring(self, variable):
+    def get_std_spring(self, variable):
         '''Returns the standard deviation for the stated variable for the spring data
         Parameters
         --------------
@@ -852,51 +795,10 @@ class An():
             name of the variable 
         '''
 
-        return self.spriData.loc[:,variable].std()
-
-    #standard deviation
-    def getStd(self, variable):
-        '''Returns the standard deviation for the stated variable for the year data
-        Parameters
-        --------------
-        variable: str 
-            name of the variable 
-        '''
-
-        return self.fData.loc[:,variable].std()
-
-    def getStdFall(self, variable):
-        '''Returns the standard deviation for the stated variable for the fall data
-        Parameters
-        --------------
-        variable: str 
-            name of the variable 
-        '''
-
-        return self.fallData.loc[:,variable].std()
-
-    def getStdWinter(self, variable):
-        '''Returns the standard deviation for the stated variable for the winter data
-        Parameters
-        --------------
-        variable: str 
-            name of the variable 
-        '''
-
-        return self.wintData.loc[:,variable].std()
-
-    def getStdSpring(self, variable):
-        '''Returns the standard deviation for the stated variable for the spring data
-        Parameters
-        --------------
-        variable: str 
-            name of the variable 
-        '''
-
-        return self.spriData.loc[:,variable].std()
+        return self.spring_season_data.loc[:,variable].std()
 
     #the minimum value
-    def getMin(self, variable):
+    def get_minimun_value(self, variable):
         '''Returns the min for the stated variable for the year data
         Parameters
         --------------
@@ -904,9 +806,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fData.loc[:,variable].min()
+        return self.filter_data.loc[:,variable].min()
 
-    def getMinFall(self, variable):
+    def get_minimun_value_fall(self, variable):
         '''Returns the min for the stated variable for the fall data
         Parameters
         --------------
@@ -914,9 +816,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fallData.loc[:,variable].min()
+        return self.fall_season_data.loc[:,variable].min()
 
-    def getMinWinter(self, variable):
+    def get_minimun_value_winter(self, variable):
         '''Returns the min for the stated variable for the winter data
         Parameters
         --------------
@@ -924,9 +826,9 @@ class An():
             name of the variable 
         '''
 
-        return self.wintData.loc[:,variable].min()
+        return self.winter_season_data.loc[:,variable].min()
 
-    def getMinSpring(self, variable):
+    def get_minimun_value_spring(self, variable):
         '''Returns the min for the stated variable for the spring data
         Parameters
         --------------
@@ -934,10 +836,10 @@ class An():
             name of the variable 
         '''
 
-        return self.spriData.loc[:,variable].min()
+        return self.spring_season_data.loc[:,variable].min()
 
     #the maximum value
-    def getMax(self, variable):
+    def get_maximum_value(self, variable):
         '''Returns the max for the stated variable for the year data
         Parameters
         --------------
@@ -945,9 +847,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fData.loc[:,variable].max()
+        return self.filter_data.loc[:,variable].max()
 
-    def getMaxFall(self, variable):
+    def get_maximum_value_fall(self, variable):
         '''Returns the max for the stated variable for the fall data
         Parameters
         --------------
@@ -955,9 +857,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fallData.loc[:,variable].max()
+        return self.fall_season_data.loc[:,variable].max()
 
-    def getMaxWinter(self, variable):
+    def get_maximum_value_winter(self, variable):
         '''Returns the max for the stated variable for the winter data
         Parameters
         --------------
@@ -965,9 +867,9 @@ class An():
             name of the variable 
         '''
 
-        return self.wintData.loc[:,variable].max()
+        return self.winter_season_data.loc[:,variable].max()
 
-    def getMaxSpring(self, variable):
+    def get_maximum_value_spring(self, variable):
         '''Returns the max for the stated variable for the spring data
         Parameters
         --------------
@@ -975,10 +877,10 @@ class An():
             name of the variable 
         '''
 
-        return self.spriData.loc[:,variable].max()
+        return self.spring_season_data.loc[:,variable].max()
 
     #the 25th quartile value
-    def get25Q(self, variable):
+    def get_25_quartile(self, variable):
         '''Returns the 25th quartile value for the stated variable for the year data
         Parameters
         --------------
@@ -986,9 +888,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fData.loc[:,variable].quantile(0.25)
+        return self.filter_data.loc[:,variable].quantile(0.25)
 
-    def get25QFall(self, variable):
+    def get_25_quartile_fall(self, variable):
         '''Returns the 25th quartile value for the stated variable for the fall data
         Parameters
         --------------
@@ -996,9 +898,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fallData.loc[:,variable].quantile(0.25)
+        return self.fall_season_data.loc[:,variable].quantile(0.25)
 
-    def get25QWinter(self, variable):
+    def get_25_quartile_winter(self, variable):
         '''Returns the 25th quartile value for the stated variable for the winter data
         Parameters
         --------------
@@ -1006,9 +908,9 @@ class An():
             name of the variable 
         '''
 
-        return self.wintData.loc[:,variable].quantile(0.25)
+        return self.winter_season_data.loc[:,variable].quantile(0.25)
 
-    def get25QSpring(self, variable):
+    def get_25_quartile_spring(self, variable):
         '''Returns the 25th quartile value for the stated variable for the spring data
         Parameters
         --------------
@@ -1016,10 +918,10 @@ class An():
             name of the variable 
         '''
 
-        return self.spriData.loc[:,variable].quantile(0.25)
+        return self.spring_season_data.loc[:,variable].quantile(0.25)
 
     #the 50th quartile value
-    def get50Q(self, variable):
+    def get_50_quartile(self, variable):
         '''Returns the 50th quartile value for the stated variable for the year data
         Parameters
         --------------
@@ -1027,9 +929,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fData.loc[:,variable].quantile(0.50)
+        return self.filter_data.loc[:,variable].quantile(0.50)
 
-    def get50QFall(self, variable):
+    def get_50_quartile_fall(self, variable):
         '''Returns the 50th quartile value for the stated variable for the fall data
         Parameters
         --------------
@@ -1037,9 +939,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fallData.loc[:,variable].quantile(0.50)
+        return self.fall_season_data.loc[:,variable].quantile(0.50)
 
-    def get50QWinter(self, variable):
+    def get_50_quartile_winter(self, variable):
         '''Returns the 50th quartile value for the stated variable for the winter data
         Parameters
         --------------
@@ -1047,9 +949,9 @@ class An():
             name of the variable 
         '''
 
-        return self.wintData.loc[:,variable].quantile(0.50)
+        return self.winter_season_data.loc[:,variable].quantile(0.50)
 
-    def get50QSpring(self, variable):
+    def get_50_quartile_spring(self, variable):
         '''Returns the 50th quartile value for the stated variable for the spring data
         Parameters
         --------------
@@ -1057,10 +959,10 @@ class An():
             name of the variable 
         '''
 
-        return self.spriData.loc[:,variable].quantile(0.50) 
+        return self.spring_season_data.loc[:,variable].quantile(0.50) 
 
     #the 75th quartile value
-    def get75Q(self, variable):
+    def get_70_quartile(self, variable):
         '''Returns the 75th quartile value for the stated variable for the year data
         Parameters
         --------------
@@ -1068,9 +970,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fData.loc[:,variable].quantile(0.75)
+        return self.filter_data.loc[:,variable].quantile(0.75)
 
-    def get75QFall(self, variable):
+    def get_70_quartile_fall(self, variable):
         '''Returns the 75th quartile value for the stated variable for the fall data
         Parameters
         --------------
@@ -1078,9 +980,9 @@ class An():
             name of the variable 
         '''
 
-        return self.fallData.loc[:,variable].quantile(0.75)
+        return self.fall_season_data.loc[:,variable].quantile(0.75)
 
-    def get75QWinter(self, variable):
+    def get_70_quartile_winter(self, variable):
         '''Returns the 75th quartile value for the stated variable for the winter data
         Parameters
         --------------
@@ -1088,9 +990,9 @@ class An():
             name of the variable 
         '''
 
-        return self.wintData.loc[:,variable].quantile(0.75)
+        return self.winter_season_data.loc[:,variable].quantile(0.75)
 
-    def get75QSpring(self, variable):
+    def get_70_quartile_spring(self, variable):
         '''Returns the 75th quartile value for the stated variable for the spring data
         Parameters
         --------------
@@ -1098,10 +1000,10 @@ class An():
             name of the variable 
         '''
 
-        return self.spriData.loc[:,variable].quantile(0.75)
+        return self.spring_season_data.loc[:,variable].quantile(0.75)
 
     #standard Error of measurement
-    def getSem(self, variable):
+    def get_standard_error_measurment(self, variable):
         '''Returns the SEM value for the stated variable for the year data
         Parameters
         --------------
@@ -1109,9 +1011,9 @@ class An():
             name of the variable 
         '''
 
-        return (self.getStd(variable)/np.sqrt(self.getCount(variable)))
+        return (self.get_std(variable)/np.sqrt(self.get_count(variable)))
 
-    def getSemFall(self, variable):
+    def get_standard_error_measurment_fall(self, variable):
         '''Returns the SEM value for the stated variable for the fall data
         Parameters
         --------------
@@ -1119,9 +1021,9 @@ class An():
             name of the variable 
         '''
 
-        return (self.getStdFall(variable)/np.sqrt(self.getCountFall(variable)))
+        return (self.get_std_fall(variable)/np.sqrt(self.get_count_fall(variable)))
 
-    def getSemWinter(self, variable):
+    def get_standard_error_measurment_winter(self, variable):
         '''Returns the SEM value for the stated variable for the winter data
         Parameters
         --------------
@@ -1129,9 +1031,9 @@ class An():
             name of the variable 
         '''
 
-        return (self.getStdWinter(variable)/np.sqrt(self.getCountWinter(variable)))
+        return (self.get_std_winter(variable)/np.sqrt(self.get_count_winter(variable)))
 
-    def getSemSpring(self, variable):
+    def get_standard_error_measurment_spring(self, variable):
         '''Returns the SEM value for the stated variable for the spring data
         Parameters
         --------------
@@ -1139,9 +1041,9 @@ class An():
             name of the variable 
         '''
 
-        return (self.getStdSpring(variable)/np.sqrt(self.getCountSpring(variable)))
+        return (self.get_std_spring(variable)/np.sqrt(self.get_count_spring(variable)))
 
-    def getSemInd(self, ds):
+    def get_standard_error_measurment_of_a_dataframe(self, ds):
         '''Returns the SEM value for the stated variable for the dataset
         Parameters
         --------------
@@ -1152,7 +1054,7 @@ class An():
         return (ds.std()/np.sqrt(ds.count()))
 
     #minimal detectable change
-    def getMdc(self, variable):
+    def get_minimal_detectable_change(self, variable):
         '''Returns the MDC value for the stated variable for the year data
         Parameters
         --------------
@@ -1161,9 +1063,9 @@ class An():
         '''
 
         
-        return (self.getSem(variable)*1.96*np.sqrt(2))
+        return (self.get_standard_error_measurment(variable)*1.96*np.sqrt(2))
 
-    def getMdcFall(self, variable):
+    def get_minimal_detectable_change_fall(self, variable):
         '''Returns the MDC value for the stated variable for the fall data
         Parameters
         --------------
@@ -1171,9 +1073,9 @@ class An():
             name of the variable 
         '''
 
-        return (self.getSemFall(variable)*1.96*np.sqrt(2))
+        return (self.get_standard_error_measurment_fall(variable)*1.96*np.sqrt(2))
 
-    def getMdcWinter(self, variable):
+    def get_minimal_detectable_change_winter(self, variable):
         '''Returns the MDC value for the stated variable for the winter data
         Parameters
         --------------
@@ -1181,9 +1083,9 @@ class An():
             name of the variable 
         '''
 
-        return (self.getSemWinter(variable)*1.96*np.sqrt(2))
+        return (self.get_standard_error_measurment_winter(variable)*1.96*np.sqrt(2))
 
-    def getMdcSpring(self, variable):
+    def get_minimal_detectable_change_sring(self, variable):
         '''Returns the MDC value for the stated variable for the spring data
         Parameters
         --------------
@@ -1191,9 +1093,9 @@ class An():
             name of the variable 
         '''
 
-        return (self.getSemSpring(variable)*1.96*np.sqrt(2))
+        return (self.get_standard_error_measurment_spring(variable)*1.96*np.sqrt(2))
 
-    def getMdcInd(self, col):
+    def get_minimal_detectable_change_of_a_dataframe(self, col):
         '''Returns the SEM value for the stated variable for the dataset
         Parameters
         --------------
@@ -1201,7 +1103,7 @@ class An():
             column with with the desired data
         '''
 
-        return (self.getSemInd(col)*1.96*np.sqrt(2))
+        return (self.get_standard_error_measurment_of_a_dataframe(col)*1.96*np.sqrt(2))
 
 
         
